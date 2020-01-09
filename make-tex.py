@@ -12,15 +12,15 @@ argumentParser.add_argument(
 args = argumentParser.parse_args()
 
 if args.version:
-    print("make-json.py version 1.0.0\nLicensed under the GPLv3.0")
+    print("make-json.py version 1.0.1\nLicensed under the GPLv3.0")
     exit()
 
 jsonFilePath = Path('.', 'commons', 'glossario.json')
-with jsonFilePath.open('r') as jsonFile:
+with jsonFilePath.open('r', encoding='utf-8') as jsonFile:
     glossary = json.load(jsonFile)
 
 texFilePath = Path('.', 'esterni', 'glossario', 'glossario.tex')
-with texFilePath.open('r') as texFile:
+with texFilePath.open('r', encoding='utf-8') as texFile:
     contents = texFile.readlines()
 
 for letter, entries in glossary.items():
@@ -35,5 +35,5 @@ for letter, entries in glossary.items():
                             "\n")
         contents.insert(-1, "\t\\end{description}\n")
 
-with texFilePath.open('w') as texFile:
+with texFilePath.open('w', encoding='utf-8') as texFile:
     texFile.write("".join(contents))
