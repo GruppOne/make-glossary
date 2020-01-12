@@ -1,39 +1,45 @@
-from pathlib import Path
-import json
 import argparse
+import json
+import sys
+from pathlib import Path
 
-argumentParser = argparse.ArgumentParser()
+# TODO refactor to function
+ARGUMENT_PARSER = argparse.ArgumentParser()
 
-argumentParser.add_argument(
-    "-v", "--version",
-    help="sow program version and exit",
-    action="store_true")
+ARGUMENT_PARSER.add_argument(
+    "-v", "--version", help="show program version and exit", action="store_true"
+)
 
-args = argumentParser.parse_args()
+PARSED_ARGS = ARGUMENT_PARSER.parse_args()
 
-if args.version:
+if PARSED_ARGS.version:
     print("make-json.py version 1.0.1\nLicensed under the GPLv3.0")
-    exit()
+    sys.exit()
 
-jsonFilePath = Path('.', 'commons', 'glossario.json')
-with jsonFilePath.open('r', encoding='utf-8') as jsonFile:
-    glossary = json.load(jsonFile)
 
-texFilePath = Path('.', 'esterni', 'glossario', 'glossario.tex')
-with texFilePath.open('r', encoding='utf-8') as texFile:
-    contents = texFile.readlines()
+def main() -> None:
+    jsonFilePath = Path(".", "commons", "glossario.json")
 
-for letter, entries in glossary.items():
-    if len(entries) != 0:
-        contents.insert(-1, "\t\\section{" + letter + "}\n")
-        contents.insert(-1, "\t\\begin{description}\n")
-        for name, description in entries.items():
-            contents.insert(-1, "\t\t\\item[" +
-                            name +
-                            "] " +
-                            description +
-                            "\n")
-        contents.insert(-1, "\t\\end{description}\n")
+    with jsonFilePath.open("r", encoding="utf-8") as jsonFile:
+        glossary = json.load(jsonFile)
 
-with texFilePath.open('w', encoding='utf-8') as texFile:
-    texFile.write("".join(contents))
+    texFilePath = Path(".", "esterni", "glossario", "glossario.tex")
+
+    with texFilePath.open("r", encoding="utf-8") as texFile:
+        contents = texFile.readlines()
+
+    for letter, entries in glossary.items():
+        if len(entries) != 0:
+            contents.insert(-1, "  \\section{" + letter + "}\n")
+            contents.insert(-1, "  \\begin{description}\n")
+
+            for name, description in entries.items():
+                contents.insert(-1, "    \\item[" + name + "] " + description + "\n")
+            contents.insert(-1, "\t\\end{description}\n")
+
+    with texFilePath.open("w", encoding="utf-8") as texFile:
+        texFile.write("".join(contents))
+
+
+if __name__ == "__main__":
+    main()

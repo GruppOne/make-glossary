@@ -1,19 +1,22 @@
-import re
-from pathlib import Path
-import json
 import argparse
+import json
+import re
+import sys
+from pathlib import Path
 
-argumentParser = argparse.ArgumentParser()
+ARGUMENT_PARSER = argparse.ArgumentParser()
 
-argumentParser.add_argument(
+# TODO define a path argument so as to call this script with
+# python ./make-json.py ../path-to-target-folder
+ARGUMENT_PARSER.add_argument(
     "-v", "--version", help="show program version and exit", action="store_true"
 )
 
-args = argumentParser.parse_args()
+PARSED_ARGS = ARGUMENT_PARSER.parse_args()
 
-if args.version:
+if PARSED_ARGS.version:
     print("make-json.py version 1.0.1\nLicensed under the GPLv3.0")
-    exit()
+    sys.exit()
 
 jsonFilePath = Path(".", "commons", "glossario.json")
 
@@ -22,7 +25,7 @@ if not jsonFilePath.exists():
     jsonFile = jsonFilePath.open("a", encoding="utf-8")
     jsonFile.write("{\n")
     for letter in [chr(i) for i in range(ord("A"), ord("Z") + 1)]:
-        jsonFile.write(f'\t"{letter}": ' + "{ }")
+        jsonFile.write(f'  "{letter}": ' + "{ }")
         if letter != "Z":
             jsonFile.write(",")
         jsonFile.write("\n")
@@ -59,5 +62,5 @@ for file in Path(".").glob("**/*.tex"):
                     print(f"Entry: {capitalizedEntry}")
 
 
-with jsonFilePath.open("w", encoding="utf-8") as jsonFile:
-    json.dump(glossary, jsonFile, indent=4, sort_keys=True)
+with jsonFilePath.open("w", encoding="utf-8", newline="\n") as jsonFile:
+    json.dump(glossary, jsonFile, indent=2, sort_keys=True)
