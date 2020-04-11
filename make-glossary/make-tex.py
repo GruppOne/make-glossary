@@ -77,9 +77,9 @@ def main() -> None:
                     contents.append("  \\item[" + name + "] " + description + "\n")
                 else:
                     print(f"ignored term {name}.")
-            contents.append("\\end{description}\n")
 
-        contents.append("\\newpage\n")
+            contents.append("\\end{description}\n")
+            contents.append("\\newpage\n")
 
     with texFilePath.open(
         "w", encoding="utf-8", errors="strict", newline="\n"
