@@ -69,17 +69,22 @@ def main() -> None:
 
     for letter, entries in glossary.items():
         if len(entries) != 0:
-            contents.append("\\section{" + letter + "}\n")
-            contents.append("\\begin{description}\n")
+            definitions = []
 
             for name, description in entries.items():
                 if description:
-                    contents.append("  \\item[" + name + "] " + description + "\n")
+                    definitions.append("  \\item[" + name + "] " + description + "\n")
                 else:
                     print(f"ignored term {name}.")
 
-            contents.append("\\end{description}\n")
-            contents.append("\\newpage\n")
+            if definitions:
+                contents.append("\\section{" + letter + "}\n")
+                contents.append("\\begin{description}\n")
+
+                contents.extend(definitions)
+
+                contents.append("\\end{description}\n")
+                contents.append("\\newpage\n")
 
     with texFilePath.open(
         "w", encoding="utf-8", errors="strict", newline="\n"
