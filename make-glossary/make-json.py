@@ -18,49 +18,64 @@ if PARSED_ARGS.version:
     print("make-json.py version 1.0.1\nLicensed under the GPLv3.0")
     sys.exit()
 
-jsonFilePath = Path(".", "commons", "glossario.json")
 
-if not jsonFilePath.exists():
-    jsonFilePath.touch()
-    jsonFile = jsonFilePath.open("a", encoding="utf-8")
-    jsonFile.write("{\n")
-    for letter in [chr(i) for i in range(ord("A"), ord("Z") + 1)]:
-        jsonFile.write(f'  "{letter}": ' + "{ }")
-        if letter != "Z":
-            jsonFile.write(",")
-        jsonFile.write("\n")
-    jsonFile.write("}\n")
-    jsonFile.close()
+def main() -> None:
+    jsonFilePath = Path(".", "commons", "glossario.json")
 
-with jsonFilePath.open("r", encoding="utf-8") as jsonFile:
-    glossary = json.load(jsonFile)
+    if not jsonFilePath.exists():
+        jsonFilePath.touch()
+        jsonFile = jsonFilePath.open("a", encoding="utf-8")
+        jsonFile.write("{\n")
+        for letter in [chr(i) for i in range(ord("A"), ord("Z") + 1)]:
+            jsonFile.write(f'  "{letter}": ' + "{ }")
+            if letter != "Z":
+                jsonFile.write(",")
+            jsonFile.write("\n")
+        jsonFile.write("}\n")
+        jsonFile.close()
 
-for file in Path(".").glob("**/*.tex"):
-    with file.open("r", encoding="utf-8") as openedFile:
-        for lineNumber, line in enumerate(openedFile):
-            for match in re.finditer(r"\\glossario\{(?P<entry>.*?)\}", line):
-                entry = match.group("entry")
-                initial = entry[0].upper()
+    with jsonFilePath.open(
+        "r", encoding="utf-8", errors="strict", newline="\n"
+    ) as jsonFile:
+        glossary = json.load(jsonFile)
 
-                if len(entry) < 2:
-                    print(f"skipping entry {entry}, too short")
-                    continue
+    for file in Path(".").glob("**/*.tex"):
+        with file.open(
+            "r", encoding="utf-8", errors="strict", newline="\n"
+        ) as openedFile:
+            for lineNumber, line in enumerate(openedFile):
+                for match in re.finditer(r"\\glossario\{(?P<entry>.*?)\}", line):
+                    entry = match.group("entry")
+                    initial = entry[0].upper()
 
-                # cannot use the str.capitalize() function because it lowers every
-                # other letter
-                capitalizedEntry = initial + entry[1:]
+                    if len(entry) < 2:
+                        print(f"skipping entry {entry}, too short")
+                        continue
 
-                try:
-                    if capitalizedEntry not in glossary[initial]:
-                        glossary[initial][capitalizedEntry] = ""
+                    # cannot use the str.capitalize() function because it lowers every
+                    # other letter
+                    capitalizedEntry = initial + entry[1:]
 
-                except KeyError:
-                    print("This entry is not a suitable dictionary key.")
-                    print(f"File: {file}")
-                    print(f"Line number: {lineNumber}")
-                    print(f"Line: {line}")
-                    print(f"Entry: {capitalizedEntry}")
+                    try:
+                        if capitalizedEntry not in glossary[initial]:
+                            glossary[initial][
+                                capitalizedEntry
+                            ] = "\\placeholder{scrivere o ignorare questa definizione}"
+
+                    except KeyError:
+                        print("This entry is not a suitable dictionary key.")
+                        print(f"File: {file}")
+                        print(f"Line number: {lineNumber}")
+                        print(f"Line: {line}")
+                        print(f"Entry: {capitalizedEntry}")
+
+    with jsonFilePath.open(
+        "w", encoding="utf-8", errors="strict", newline="\n"
+    ) as jsonFile:
+        json.dump(
+            glossary, jsonFile, indent=2, sort_keys=True, ensure_ascii=False,
+        )
 
 
-with jsonFilePath.open("w", encoding="utf-8", newline="\n") as jsonFile:
-    json.dump(glossary, jsonFile, indent=2, sort_keys=True)
+if __name__ == "__main__":
+    main()

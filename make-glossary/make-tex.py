@@ -1,6 +1,8 @@
 import argparse
 import json
 import sys
+import re
+import typing
 from pathlib import Path
 
 # TODO refactor to function
@@ -17,28 +19,72 @@ if PARSED_ARGS.version:
     sys.exit()
 
 
+START_EXPRESSION = "INIZIO_SEZIONE_GENERATA_AUTOMATICAMENTE"
+END_EXPRESSION = "FINE_SEZIONE_GENERATA_AUTOMATICAMENTE"
+
+
+def findSectionStart(lines: typing.List[str]) -> int:
+    matchedIndexes = [
+        i for i, line in enumerate(lines) if re.search(START_EXPRESSION, line)
+    ]
+    assert len(matchedIndexes) == 1, "found too many start expressions"
+    assert matchedIndexes[0] != 0, "this matched index does not make sense"
+
+    return matchedIndexes[0]
+
+
+def findSectionEnd(lines: typing.List[str]) -> int:
+    matchedIndexes = [
+        i for i, line in enumerate(lines) if re.search(END_EXPRESSION, line)
+    ]
+    assert len(matchedIndexes) == 1, "found too many end expressions"
+    assert matchedIndexes[0] != 0, "this matched index does not make sense"
+
+    return matchedIndexes[0]
+
+
 def main() -> None:
     jsonFilePath = Path(".", "commons", "glossario.json")
 
-    with jsonFilePath.open("r", encoding="utf-8") as jsonFile:
+    with jsonFilePath.open(
+        "r", encoding="utf-8", errors="strict", newline="\n"
+    ) as jsonFile:
         glossary = json.load(jsonFile)
 
     texFilePath = Path(".", "esterni", "glossario", "glossario.tex")
 
-    with texFilePath.open("r", encoding="utf-8") as texFile:
-        contents = texFile.readlines()
+    with texFilePath.open(
+        "r", encoding="utf-8", errors="strict", newline="\n"
+    ) as texFile:
+        wholeContents: typing.List[str] = texFile.readlines()
+
+    sectionStart = findSectionStart(wholeContents)
+    sectionEnd = findSectionEnd(wholeContents)
+
+    preamble = wholeContents[: sectionStart + 1]
+    # contents = wholeContents[sectionStart + 1 : sectionEnd]
+    ending = wholeContents[sectionEnd:]
+
+    contents: typing.List[str] = []
 
     for letter, entries in glossary.items():
         if len(entries) != 0:
-            contents.insert(-1, "  \\section{" + letter + "}\n")
-            contents.insert(-1, "  \\begin{description}\n")
+            contents.append("\\section{" + letter + "}\n")
+            contents.append("\\begin{description}\n")
 
             for name, description in entries.items():
-                contents.insert(-1, "    \\item[" + name + "] " + description + "\n")
-            contents.insert(-1, "\t\\end{description}\n")
+                if description:
+                    contents.append("  \\item[" + name + "] " + description + "\n")
+                else:
+                    print(f"ignored term {name}.")
+            contents.append("\\end{description}\n")
 
-    with texFilePath.open("w", encoding="utf-8") as texFile:
-        texFile.write("".join(contents))
+        contents.append("\\newpage\n")
+
+    with texFilePath.open(
+        "w", encoding="utf-8", errors="strict", newline="\n"
+    ) as texFile:
+        texFile.write("".join(preamble + contents + ending))
 
 
 if __name__ == "__main__":
