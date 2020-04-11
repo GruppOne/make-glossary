@@ -44,7 +44,7 @@ def findSectionEnd(lines: typing.List[str]) -> int:
 
 
 def main() -> None:
-    jsonFilePath = Path(".", "commons", "glossario.json")
+    jsonFilePath = Path(".", "esterni", "glossario", "glossario.json")
 
     with jsonFilePath.open(
         "r", encoding="utf-8", errors="strict", newline="\n"

@@ -20,7 +20,7 @@ if PARSED_ARGS.version:
 
 
 def main() -> None:
-    jsonFilePath = Path(".", "commons", "glossario.json")
+    jsonFilePath = Path(".", "esterni", "glossario", "glossario.json")
 
     if not jsonFilePath.exists():
         jsonFilePath.touch()
