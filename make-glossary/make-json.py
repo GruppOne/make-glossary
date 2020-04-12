@@ -75,6 +75,7 @@ def main() -> None:
         json.dump(
             glossary, jsonFile, indent=2, sort_keys=True, ensure_ascii=False,
         )
+        jsonFile.write("\n")
 
 
 if __name__ == "__main__":
